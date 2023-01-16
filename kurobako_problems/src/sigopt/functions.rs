@@ -54,8 +54,7 @@ impl TestFunction for Adjiman {
 pub struct Alpine02;
 impl TestFunction for Alpine02 {
     fn bounds(&self, dim: usize) -> Result<Vec<(f64, f64)>> {
-        track_assert_eq!(dim, 2, ErrorKind::InvalidInput);
-        Ok(vec![(0.0, 10.0), (0.0, 10.0)])
+        Ok(iter::repeat((0.0, 10.0)).take(dim).collect())
     }
 
     fn evaluate(&self, xs: &[f64]) -> f64 {
@@ -1393,7 +1392,7 @@ impl TestFunction for Michalewicz {
 
     fn bounds(&self, dim: usize) -> Result<Vec<(f64, f64)>> {
         let max_dim = 12;
-        track_assert!(dim <= max_dim, ErrorKind::InvalidInput; dim, max_dim);
+        // track_assert!(dim <= max_dim, ErrorKind::InvalidInput; dim, max_dim);
         Ok(iter::repeat((0.0, PI)).take(dim).collect())
     }
 
@@ -1585,9 +1584,14 @@ impl TestFunction for Rastrigin {
     }
 
     fn bounds(&self, dim: usize) -> Result<Vec<(f64, f64)>> {
-        track_assert_eq!(dim, 8, ErrorKind::InvalidInput);
-        let a = [-5.0, -5.0, -2.0, -2.0, -5.0, -5.0, -2.0, -2.0];
-        let b = [2.0, 2.0, 5.0, 5.0, 2.0, 2.0, 5.0, 5.0];
+        let mut a = vec![-5.0; dim];
+        let mut b = vec![2.0; dim];
+        for i in 0..dim {
+            if i % 4 == 2 || i % 4 == 3 {
+                a[i] = -2.0;
+                b[i] = 5.0;
+            }
+        }
         Ok(a.iter().copied().zip(b.iter().copied()).collect())
     }
 
@@ -1608,8 +1612,7 @@ impl TestFunction for RosenbrockLog {
     }
 
     fn bounds(&self, dim: usize) -> Result<Vec<(f64, f64)>> {
-        track_assert_eq!(dim, 11, ErrorKind::InvalidInput);
-        Ok(vec![
+        let bounds_11 = vec![
             (-2.0, 2.0),
             (-2.0, 1.1),
             (0.5, 2.0),
@@ -1621,7 +1624,12 @@ impl TestFunction for RosenbrockLog {
             (0.7, 2.0),
             (-2.0, 2.0),
             (-2.0, 2.0),
-        ])
+        ];
+        let mut bounds: Vec<(f64, f64)> = Vec::new();
+        for i in 0..dim {
+            bounds.push(bounds_11[i % 11].clone());
+        }
+        Ok(bounds)
     }
 
     fn evaluate(&self, xs: &[f64]) -> f64 {
@@ -1833,8 +1841,7 @@ impl TestFunction for Trid {
     }
 
     fn bounds(&self, dim: usize) -> Result<Vec<(f64, f64)>> {
-        track_assert_eq!(dim, 6, ErrorKind::InvalidInput);
-        Ok(iter::repeat((0.0, 20.0)).take(dim).collect())
+        Ok(iter::repeat((0.0, (dim * dim) as f64 * 5.0 / 9.0)).take(dim).collect())
     }
 
     fn evaluate(&self, xs: &[f64]) -> f64 {
